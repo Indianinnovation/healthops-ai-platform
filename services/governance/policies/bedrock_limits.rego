@@ -1,5 +1,7 @@
 package healthops.bedrock
 
+import rego.v1
+
 deny contains msg if {
     input.user.daily_queries > 100
     msg := "Daily Bedrock query limit exceeded (100/day)"

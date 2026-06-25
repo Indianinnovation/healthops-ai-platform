@@ -1,6 +1,8 @@
 package healthops.authz
 
-default allow = false
+import rego.v1
+
+default allow := false
 
 allow if {
     input.user.role == "admin"

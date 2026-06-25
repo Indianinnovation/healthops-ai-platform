@@ -1,7 +1,8 @@
 import streamlit as st
 import requests
+import os
 
-API_URL = "http://api:8000"
+API_URL = os.getenv("API_URL", "http://api:8000")
 
 st.set_page_config(page_title="HealthOps AI Platform", page_icon="🏥", layout="wide")
 st.title("🏥 HealthOps AI Platform")
@@ -12,20 +13,27 @@ tab1, tab2, tab3 = st.tabs(["💬 Healthcare Q&A", "📊 Anomaly Detection", "�
 # --- Tab 1: RAG Query ---
 with tab1:
     st.subheader("Bedrock RAG — Healthcare Document Q&A")
-    question = st.text_input("Ask a healthcare question:", placeholder="What are prior auth requirements for MRI?")
+    question = st.text_input("Ask a healthcare question:", placeholder="What are prior auth requirements for MRI?", max_chars=500)
     if st.button("Ask", key="ask"):
-        if question:
+        if question and len(question.strip()) >= 3:
             with st.spinner("Querying..."):
-                resp = requests.post(f"{API_URL}/query", json={"question": question})
-            if resp.ok:
-                data = resp.json()
-                st.success(data["answer"])
-                with st.expander("📄 Sources"):
-                    for s in data["sources"]:
-                        st.write(f"- {s}")
-                st.caption(f"Model: {data['model']}")
-            else:
-                st.error(f"Error: {resp.text}")
+                try:
+                    resp = requests.post(f"{API_URL}/query", json={"question": question}, timeout=30)
+                    if resp.ok:
+                        data = resp.json()
+                        st.success(data["answer"])
+                        with st.expander("📄 Sources"):
+                            for s in data["sources"]:
+                                st.write(f"- {s}")
+                        st.caption(f"Model: {data['model']}")
+                    else:
+                        st.error(f"Error: {resp.status_code}")
+                except requests.exceptions.ConnectionError:
+                    st.error("Cannot connect to API. Is the backend running?")
+                except requests.exceptions.Timeout:
+                    st.error("Request timed out. Try again.")
+        else:
+            st.warning("Please enter at least 3 characters.")
 
 # --- Tab 2: Anomaly Detection ---
 with tab2:
@@ -45,21 +53,26 @@ with tab2:
             "member_satisfaction": satisfaction,
             "readmission_rate": readmission,
         }
-        resp = requests.post(f"{API_URL}/anomaly", json=payload)
-        if resp.ok:
-            data = resp.json()
-            if data["is_anomaly"]:
-                st.error("🚨 ANOMALY DETECTED — KPIs are outside normal range!")
+        try:
+            resp = requests.post(f"{API_URL}/anomaly", json=payload, timeout=10)
+            if resp.ok:
+                data = resp.json()
+                if data["is_anomaly"]:
+                    st.error("🚨 ANOMALY DETECTED — KPIs are outside normal range!")
+                else:
+                    st.success("✅ Normal — All KPIs within expected range.")
+                st.json(data)
             else:
-                st.success("✅ Normal — All KPIs within expected range.")
-            st.json(data)
+                st.error(f"Error: {resp.status_code}")
+        except requests.exceptions.ConnectionError:
+            st.error("Cannot connect to API.")
 
 # --- Tab 3: Governance ---
 with tab3:
     st.subheader("OPA Policy — HIPAA Access Control")
     col1, col2 = st.columns(2)
     with col1:
-        user = st.text_input("Username", value="john_doe")
+        user = st.text_input("Username", value="john_doe", max_chars=100)
         role = st.selectbox("Role", ["member", "clinician", "admin"])
     with col2:
         hipaa_trained = st.checkbox("HIPAA Trained", value=False)
@@ -67,12 +80,18 @@ with tab3:
 
     if st.button("Check Access", key="check"):
         payload = {"user": user, "role": role, "hipaa_trained": hipaa_trained, "resource": resource}
-        resp = requests.post(f"{API_URL}/governance/check", json=payload)
-        if resp.ok:
-            data = resp.json()
-            if data["allowed"]:
-                st.success(f"✅ ACCESS GRANTED for {user}")
+        try:
+            resp = requests.post(f"{API_URL}/governance/check", json=payload, timeout=10)
+            if resp.ok:
+                data = resp.json()
+                if data["allowed"]:
+                    st.success(f"✅ ACCESS GRANTED for {user}")
+                else:
+                    st.error(f"🚫 ACCESS DENIED for {user}")
+                    for d in data["denials"]:
+                        if d:
+                            st.warning(d)
             else:
-                st.error(f"🚫 ACCESS DENIED for {user}")
-                for d in data["denials"]:
-                    st.warning(d)
+                st.error(f"Error: {resp.status_code}")
+        except requests.exceptions.ConnectionError:
+            st.error("Cannot connect to API.")
