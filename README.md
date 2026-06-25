@@ -49,6 +49,9 @@ This platform addresses all four needs through a modular, event-driven architect
 
 ## Architecture
 
+
+<img width="658" height="378" alt="image" src="https://github.com/user-attachments/assets/f64ebfa2-5be1-42d3-91b2-d261ec091edd" />
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         HealthOps AI Platform                                │
