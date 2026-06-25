@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: HealthOps AI Platform - SageMaker Anomaly Detection Infrastructure
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: healthops
+
+Resources:
+  SageMakerExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${EnvironmentName}-sagemaker-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+      Policies:
+        - PolicyName: S3ModelAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::${EnvironmentName}-models-${AWS::AccountId}
+                  - !Sub arn:aws:s3:::${EnvironmentName}-models-${AWS::AccountId}/*
+
+  SageMakerNotebook:
+    Type: AWS::SageMaker::NotebookInstance
+    Properties:
+      NotebookInstanceName: !Sub ${EnvironmentName}-anomaly-notebook
+      InstanceType: ml.t3.medium
+      RoleArn: !GetAtt SageMakerExecutionRole.Arn
+      DirectInternetAccess: Disabled
+      SubnetId: !ImportValue
+        Fn::Sub: ${EnvironmentName}-PrivateSubnets
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-anomaly-notebook
+
+Outputs:
+  SageMakerRoleArn:
+    Value: !GetAtt SageMakerExecutionRole.Arn
+    Export:
+      Name: !Sub ${EnvironmentName}-SageMakerRoleArn

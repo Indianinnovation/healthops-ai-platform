@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: HealthOps Lambda Router
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.11
+    Environment:
+      Variables:
+        AWS_REGION: us-east-1
+        BEDROCK_MODEL_ID: anthropic.claude-3-haiku-20240307-v1:0
+
+Resources:
+  RouterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.handler
+      CodeUri: .
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+      Events:
+        Query:
+          Type: Api
+          Properties:
+            Path: /query
+            Method: post

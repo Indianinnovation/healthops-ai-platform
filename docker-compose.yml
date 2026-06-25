@@ -1,0 +1,27 @@
+services:
+  api:
+    build: ./services/api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_REGION=us-east-1
+      - SAGEMAKER_ENDPOINT=healthops-anomaly-endpoint
+      - OPA_URL=http://opa:8181
+      - BEDROCK_MODEL_ID=anthropic.claude-3-haiku-20240307-v1:0
+    depends_on:
+      - opa
+
+  opa:
+    image: openpolicyagent/opa:latest
+    ports:
+      - "8181:8181"
+    command: run --server /policies
+    volumes:
+      - ./services/governance/policies:/policies
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api

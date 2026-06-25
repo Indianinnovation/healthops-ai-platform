@@ -1,0 +1,34 @@
+{
+  "alarms": [
+    {
+      "AlarmName": "healthops-high-error-rate",
+      "MetricName": "ErrorRate",
+      "Namespace": "HealthOps",
+      "Threshold": 5,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "EvaluationPeriods": 2,
+      "Period": 300,
+      "Statistic": "Average"
+    },
+    {
+      "AlarmName": "healthops-critical-latency",
+      "MetricName": "RequestLatency",
+      "Namespace": "HealthOps",
+      "Threshold": 5000,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "EvaluationPeriods": 3,
+      "Period": 60,
+      "Statistic": "p99"
+    },
+    {
+      "AlarmName": "healthops-anomaly-spike",
+      "MetricName": "AnomaliesDetected",
+      "Namespace": "HealthOps",
+      "Threshold": 10,
+      "ComparisonOperator": "GreaterThanThreshold",
+      "EvaluationPeriods": 1,
+      "Period": 300,
+      "Statistic": "Sum"
+    }
+  ]
+}

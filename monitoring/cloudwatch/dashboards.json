@@ -1,0 +1,48 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["HealthOps", "RequestLatency", "Service", "healthops-api"],
+          ["HealthOps", "ErrorRate", "Service", "healthops-api"]
+        ],
+        "period": 60,
+        "title": "API Performance"
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["HealthOps", "BedrockInvocations", "Service", "healthops-api"],
+          ["HealthOps", "BedrockLatency", "Service", "healthops-api"]
+        ],
+        "period": 60,
+        "title": "Bedrock RAG Metrics"
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["HealthOps", "AnomaliesDetected", "Service", "healthops-api"],
+          ["HealthOps", "SageMakerLatency", "Service", "healthops-api"]
+        ],
+        "period": 300,
+        "title": "SageMaker Anomaly Detection"
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["HealthOps", "OPADenials", "Service", "healthops-api"],
+          ["HealthOps", "PHIAccessAttempts", "Service", "healthops-api"]
+        ],
+        "period": 300,
+        "title": "Governance & Compliance"
+      }
+    }
+  ]
+}
